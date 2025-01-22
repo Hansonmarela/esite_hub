@@ -6,7 +6,6 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -64,7 +63,6 @@ body {
   }
 }
 
-
 @layer base {
   * {
     @apply border-border;
@@ -80,5 +78,8 @@ body {
   }
   .h1-bold {
     @apply font-bold text-2xl lg:text-3xl;
+  }
+  .h2-bold {
+    @apply font-bold text-lg lg:text-xl; /* Fixed typo here */
   }
 }
