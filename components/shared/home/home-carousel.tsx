@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Image from 'next/image';
-import Autoplay from 'embla-carousel-autoplay';
+import * as React from "react";
+import Image from "next/image";
+import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from '@/components/ui/carousel';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/carousel";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function HomeCarousel({
   items,
@@ -23,23 +23,24 @@ export function HomeCarousel({
     buttonCaption: string;
   }[];
 }) {
-  const plugin = React.useRef(
+  const autoplayPlugin = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
 
   return (
     <Carousel
       dir="ltr"
-      plugins={[plugin.current]}
-      className="w-full mx-auto"
-      onMouseEnter={() => plugin.current.stop()}
-      onMouseLeave={() => plugin.current.reset()}
+      plugins={[autoplayPlugin.current]}
+      className="w-full mx-auto relative"
+      onMouseEnter={() => autoplayPlugin.current.stop()}
+      onMouseLeave={() => autoplayPlugin.current.reset()}
     >
       <CarouselContent>
         {items.map((item) => (
           <CarouselItem key={item.title}>
             <Link href={item.url}>
-              <div className="flex aspect-[16/6] items-center justify-center p-6 relative -m-1">
+              <div className="relative aspect-[16/6] w-full h-auto">
+                {/* Background Image */}
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -47,19 +48,23 @@ export function HomeCarousel({
                   className="object-cover"
                   priority
                 />
-                <div className="absolute w-1/3 left-16 md:left-32 top-1/2 transform -translate-y-1/2">
-                  <h2 className="text-xl md:text-4xl lg:text-6xl font-bold mb-4 text-primary">
+                {/* Overlay Content */}
+                <div className="absolute inset-0 flex flex-col justify-center items-start px-8 md:px-16 text-white bg-gradient-to-r from-black/40 to-transparent">
+                  <h2 className="text-2xl md:text-4xl lg:text-6xl font-bold mb-4">
                     {item.title}
                   </h2>
-                  <Button className="hidden md:block">{item.buttonCaption}</Button>
+                  <Button className="bg-primary text-white text-sm md:text-lg px-4 py-2">
+                    {item.buttonCaption}
+                  </Button>
                 </div>
               </div>
             </Link>
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="left-0 md:left-12" />
-      <CarouselNext className="right-0 md:right-12" />
+      {/* Navigation Buttons */}
+      <CarouselPrevious className="absolute left-4 md:left-12 top-1/2 transform -translate-y-1/2 z-10" />
+      <CarouselNext className="absolute right-4 md:right-12 top-1/2 transform -translate-y-1/2 z-10" />
     </Carousel>
   );
 }
