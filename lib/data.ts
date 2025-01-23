@@ -1,5 +1,7 @@
-import { Data, IProductInput } from '@/types'
+// import { Data, IProductInput } from '@/types'
 import { toSlug } from './utils'
+import { data as Data, IProductInput } from '@/types';
+
 
 const products: IProductInput[] = [
     {

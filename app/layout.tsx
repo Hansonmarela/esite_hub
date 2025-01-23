@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { APP_DESCRIPTION, APP_NAME } from '@/lib/constants';
+import { APP_DESCRIPTION, APP_NAME, APP_SLOGAN } from "@/lib/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,10 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     template: `%s | ${APP_NAME}`,
-    default: '${APP_NAME} - ${APP_SLOGAN}',
+    default: `${APP_NAME} - ${APP_SLOGAN}`, // Fixed template literal
   },
   description: APP_DESCRIPTION,
-}
+};
 
 export default function RootLayout({
   children,
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr"> {/* Added dir attribute */}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
