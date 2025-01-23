@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import ProductSlider from "@/components/shared/product/product-slider";
 import { toSlug } from "@/lib/utils";
 
+
 export default async function Page() {
   const categories = (await getAllCategories()).slice(0, 4);
   const newArrivals = await getProductsForCard({ tag: "new-arrivals", limit: 4 });
@@ -15,7 +16,7 @@ export default async function Page() {
     {
       title: "Categories to explore",
       link: { text: "See More", href: "/search" },
-      items: categories.map((category: string) => ({
+      items: categories.map((category) => ({
         name: category,
         image: `/images/${toSlug(category)}.jpg`,
         href: `/search?category=${category}`,
@@ -23,18 +24,18 @@ export default async function Page() {
     },
     {
       title: "Explore New Arrivals",
-      items: newArrivals || [],
-      link: { text: "View More", href: "/search?tag=new-arrivals" },
+      items: newArrivals,
+      link: { text: "View More", href: "/search?tag=new-arrival" },
     },
     {
       title: "Discover Best Sellers",
-      items: bestSellers || [],
-      link: { text: "View All", href: "/search?tag=best-sellers" },
+      items: bestSellers,
+      link: { text: "View All", href: "/search?tag=new-arrival" },
     },
     {
       title: "Featured Products",
-      items: featureds || [],
-      link: { text: "Shop Now", href: "/search?tag=featured" },
+      items: featureds,
+      link: { text: "Shop Now", href: "/search?tag=new-arrival" },
     },
   ];
 
