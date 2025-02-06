@@ -12,11 +12,10 @@ import ProductSlider from '@/components/shared/product/product-slider'
 import Rating from '@/components/shared/product/rating'
 import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import AddToBrowsingHistory from '@/components/shared/product/add-to-browsing-history'
+import AddToCart from '@/components/shared/product/add-to-cart'
+import { generateId, round2 } from '@/lib/utils'
 
-export async function generateMetadata(props: {
-  params: Promise<{ slug: string }>
-}) {
-  const params = await props.params
+export async function generateMetadata({ params }: { params: { slug: string } }) {
   const product = await getProductBySlug(params.slug)
   if (!product) {
     return { title: 'Product not found' }
@@ -27,19 +26,21 @@ export async function generateMetadata(props: {
   }
 }
 
-export default async function ProductDetails(props: {
-  params: Promise<{ slug: string }>
-  searchParams: Promise<{ page: string; color: string; size: string }>
+export default async function ProductDetails({
+  params,
+  searchParams,
+}: {
+  params: { slug: string }
+  searchParams: { page?: string; color?: string; size?: string }
 }) {
-  const searchParams = await props.searchParams
-
   const { page, color, size } = searchParams
-
-  const params = await props.params
-
   const { slug } = params
 
   const product = await getProductBySlug(slug)
+
+  if (!product) {
+    return <div>Product not found</div>
+  }
 
   const relatedProducts = await getRelatedProductsByCategory({
     category: product.category,
@@ -51,14 +52,14 @@ export default async function ProductDetails(props: {
     <div>
       <AddToBrowsingHistory id={product.id} category={product.category} />
       <section>
-        <div className='grid grid-cols-1 md:grid-cols-5  '>
+        <div className='grid grid-cols-1 md:grid-cols-5'>
           <div className='col-span-2'>
             <ProductGallery images={product.images} />
           </div>
 
           <div className='flex w-full flex-col gap-2 md:p-5 col-span-2'>
             <div className='flex flex-col gap-3'>
-              <p className='p-medium-16 rounded-full bg-grey-500/10   text-grey-500'>
+              <p className='p-medium-16 rounded-full bg-grey-500/10 text-grey-500'>
                 Brand {product.brand} {product.category}
               </p>
               <h1 className='font-bold text-lg lg:text-xl'>{product.name}</h1>
@@ -88,46 +89,59 @@ export default async function ProductDetails(props: {
             </div>
             <Separator className='my-2' />
             <div className='flex flex-col gap-2'>
-              <p className='p-bold-20 text-grey-600'>
-                Description:</p>
-              <p className='p-medium-16 lg:p-regular-18'>
-                {product.description}
-              </p>
+              <p className='p-bold-20 text-grey-600'>Description:</p>
+              <p className='p-medium-16 lg:p-regular-18'>{product.description}</p>
             </div>
           </div>
+
           <div>
             <Card>
-              <CardContent className='p-4 flex flex-col  gap-4'>
+              <CardContent className='p-4 flex flex-col gap-4'>
                 <ProductPrice price={product.price} />
 
                 {product.countInStock > 0 && product.countInStock <= 3 && (
                   <div className='text-destructive font-bold'>
-                    {'Only ${product.countInStock} left in stock - order soon'}
+                    {`Only ${product.countInStock} left in stock - order soon`}
                   </div>
                 )}
                 {product.countInStock !== 0 ? (
-                  <div className='text-green-700 text-xl'>
-                   In Stock 
-                  </div>
+                  <div className='text-green-700 text-xl'>In Stock</div>
                 ) : (
-                  <div className='text-destructive text-xl'>
-                   Out of Stock 
-                  </div>
+                  <div className='text-destructive text-xl'>Out of Stock</div>
                 )}
-
+                {product.countInStock !== 0 && (
+              <div className='flex justify-center items-center'>
+                <AddToCart
+                  item={{
+                    clientId: generateId(),
+                    product: product._id,
+                    countInStock: product.countInStock,
+                    name: product.name,
+                    slug: product.slug,
+                    category: product.category,
+                    price: round2(product.price),
+                    quantity: 1,
+                    image: product.images[0],
+                    size: size || product.sizes[0],
+                    color: color || product.colors[0],
+                  }}
+                />
+              </div>
+            )}
               </CardContent>
             </Card>
+
+            
           </div>
         </div>
       </section>
+
       <section className='mt-10'>
-        <ProductSlider
-          products={relatedProducts.data}
-          title={"Related to items that you've viewed"}
-        />
+        <ProductSlider products={relatedProducts.data} title={"Related to items that you've viewed"} />
       </section>
+
       <section>
-        <BrowsingHistoryList className="mt-10"/>
+        <BrowsingHistoryList className='mt-10' />
       </section>
     </div>
   )
