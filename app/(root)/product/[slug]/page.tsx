@@ -1,51 +1,42 @@
-import { Metadata } from 'next'
-import { getProductBySlug, getRelatedProductsByCategory } from '@/lib/actions/product.actions'
+import AddToCart from '@/components/shared/product/add-to-cart'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  getProductBySlug,
+  getRelatedProductsByCategory,
+} from '@/lib/actions/product.actions'
+
+import { generateId, round2 } from '@/lib/utils'
 import SelectVariant from '@/components/shared/product/select-variant'
 import ProductPrice from '@/components/shared/product/product-price'
 import ProductGallery from '@/components/shared/product/product-gallery'
-import { Separator } from '@/components/ui/separator'
-import ProductSlider from '@/components/shared/product/product-slider'
-import Rating from '@/components/shared/product/rating'
-import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import AddToBrowsingHistory from '@/components/shared/product/add-to-browsing-history'
-import AddToCart from '@/components/shared/product/add-to-cart'
-import { generateId, round2 } from '@/lib/utils'
+import { Separator } from '@/components/ui/separator'
+import BrowsingHistoryList from '@/components/shared/browsing-history-list'
+import ProductSlider from '@/components/shared/product/product-slider'
 
-// ✅ Define the expected type explicitly
-interface PageProps {
+export async function generateMetadata(props: {
   params: { slug: string }
-  searchParams: { [key: string]: string | string[] | undefined }
-}
-
-// ✅ Fix generateMetadata type
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const product = await getProductBySlug(params.slug)
-
+}) {
+  const { slug } = props.params
+  const product = await getProductBySlug(slug)
   if (!product) {
     return { title: 'Product not found' }
   }
-
   return {
     title: product.name,
     description: product.description,
   }
 }
 
-// ✅ Fix the main component type
-export default async function ProductDetails({ params, searchParams }: PageProps) {
+export default async function ProductDetails(props: {
+  params: { slug: string }
+  searchParams: { page: string; color: string; size: string }
+}) {
+  const searchParams = props.searchParams
   const { page, color, size } = searchParams
-  const { slug } = params
-
-  // ✅ Ensure params.slug is always a string
-  if (!slug || typeof slug !== 'string') {
-    return <div>Error: Invalid product slug</div>
-  }
+  const { slug } = props.params
 
   const product = await getProductBySlug(slug)
-
-  if (!product) {
-    return <div>Product not found</div>
-  }
 
   const relatedProducts = await getRelatedProductsByCategory({
     category: product.category,
@@ -55,27 +46,23 @@ export default async function ProductDetails({ params, searchParams }: PageProps
 
   return (
     <div>
-      <AddToBrowsingHistory id={product.id} category={product.category} />
+      <AddToBrowsingHistory id={product._id} category={product.category} />
       <section>
-        <div className="grid grid-cols-1 md:grid-cols-5">
-          <div className="col-span-2">
+        <div className='grid grid-cols-1 md:grid-cols-5'>
+          <div className='col-span-2'>
             <ProductGallery images={product.images} />
           </div>
 
-          <div className="flex w-full flex-col gap-2 md:p-5 col-span-2">
-            <div className="flex flex-col gap-3">
-              <p className="p-medium-16 rounded-full bg-grey-500/10 text-grey-500">
+          <div className='flex w-full flex-col gap-2 md:p-5 col-span-2'>
+            <div className='flex flex-col gap-3'>
+              <p className='p-medium-16 rounded-full bg-grey-500/10 text-grey-500'>
                 Brand {product.brand} {product.category}
               </p>
-              <h1 className="font-bold text-lg lg:text-xl">{product.name}</h1>
-              <div className="flex items-center gap-2">
-                <span>{product.avgRating.toFixed(1)}</span>
-                <Rating rating={product.avgRating} />
-                <span>{product.numReviews} ratings</span>
-              </div>
+              <h1 className='font-bold text-lg lg:text-xl'>{product.name}</h1>
+
               <Separator />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex gap-3">
+              <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
+                <div className='flex gap-3'>
                   <ProductPrice
                     price={product.price}
                     listPrice={product.listPrice}
@@ -88,61 +75,72 @@ export default async function ProductDetails({ params, searchParams }: PageProps
             <div>
               <SelectVariant
                 product={product}
-                size={typeof size === 'string' ? size : product.sizes[0]}
-                color={typeof color === 'string' ? color : product.colors[0]}
+                size={size || product.sizes[0]}
+                color={color || product.colors[0]}
               />
             </div>
-            <Separator className="my-2" />
-            <div className="flex flex-col gap-2">
-              <p className="p-bold-20 text-grey-600">Description:</p>
-              <p className="p-medium-16 lg:p-regular-18">{product.description}</p>
+            <Separator className='my-2' />
+            <div className='flex flex-col gap-2'>
+              <p className='p-bold-20 text-grey-600'>
+                Description:
+              </p>
+              <p className='p-medium-16 lg:p-regular-18'>
+                {product.description}
+              </p>
             </div>
           </div>
-
           <div>
-            <div className="p-4 flex flex-col gap-4">
-              <ProductPrice price={product.price} />
+            <Card>
+              <CardContent className='p-4 flex flex-col gap-4'>
+                <ProductPrice price={product.price} />
 
-              {product.countInStock > 0 && product.countInStock <= 3 && (
-                <div className="text-destructive font-bold">
-                  {`Only ${product.countInStock} left in stock - order soon`}
-                </div>
-              )}
-              {product.countInStock !== 0 ? (
-                <div className="text-green-700 text-xl">In Stock</div>
-              ) : (
-                <div className="text-destructive text-xl">Out of Stock</div>
-              )}
-              {product.countInStock !== 0 && (
-                <div className="flex justify-center items-center">
-                  <AddToCart
-                    item={{
-                      clientId: generateId(),
-                      product: product._id,
-                      countInStock: product.countInStock,
-                      name: product.name,
-                      slug: product.slug,
-                      category: product.category,
-                      price: round2(product.price),
-                      quantity: 1,
-                      image: product.images[0],
-                      size: typeof size === 'string' ? size : product.sizes[0],
-                      color: typeof color === 'string' ? color : product.colors[0],
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+                {product.countInStock > 0 && product.countInStock <= 3 && (
+                  <div className='text-destructive font-bold'>
+                    Only {product.countInStock} left in stock - order soon
+                  </div>
+                )}
+                {product.countInStock !== 0 ? (
+                  <div className='text-green-700 text-xl'>
+                    In Stock
+                  </div>
+                ) : (
+                  <div className='text-destructive text-xl'>
+                    Out of Stock
+                  </div>
+                )}
+
+                {product.countInStock !== 0 && (
+                  <div className='flex justify-center items-center'>
+                    <AddToCart
+                      item={{
+                        clientId: generateId(),
+                        product: product._id,
+                        countInStock: product.countInStock,
+                        name: product.name,
+                        slug: product.slug,
+                        category: product.category,
+                        price: round2(product.price),
+                        quantity: 1,
+                        image: product.images[0],
+                        size: size || product.sizes[0],
+                        color: color || product.colors[0],
+                      }}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
-
-      <section className="mt-10">
-        <ProductSlider products={relatedProducts.data} title={"Related to items that you've viewed"} />
+      <section className='mt-10'>
+        <ProductSlider
+          products={relatedProducts.data}
+          title={`Best Sellers in ${product.category}`}
+        />
       </section>
-
       <section>
-        <BrowsingHistoryList className="mt-10" />
+        <BrowsingHistoryList className='mt-10' />
       </section>
     </div>
   )
