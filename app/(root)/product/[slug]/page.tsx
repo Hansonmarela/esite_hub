@@ -14,6 +14,7 @@ import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import AddToBrowsingHistory from '@/components/shared/product/add-to-browsing-history'
 import AddToCart from '@/components/shared/product/add-to-cart'
 import { generateId, round2 } from '@/lib/utils'
+import { GetServerSidePropsContext } from 'next';
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const product = await getProductBySlug(params.slug);
@@ -31,14 +32,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function ProductDetails({
   params,
-  searchParams,
-}: {
-  params: { slug: string }
-  searchParams: { page?: string; color?: string; size?: string }
-}) {
-  const { page, color, size } = searchParams
-  const { slug } = params
+  query,
+}: GetServerSidePropsContext<{ slug: string }>) {
+  const { page, color, size } = query
+  const { slug } = params || {}
 
+  if (!slug) {
+    return <div>Product not found</div>
+  }
   const product = await getProductBySlug(slug)
 
   if (!product) {
@@ -86,8 +87,8 @@ export default async function ProductDetails({
             <div>
               <SelectVariant
                 product={product}
-                size={size || product.sizes[0]}
-                color={color || product.colors[0]}
+                size={Array.isArray(size) ? size[0] : size || product.sizes[0]}
+                color={Array.isArray(color) ? color[0] : color || product.colors[0]}
               />
             </div>
             <Separator className='my-2' />
@@ -125,8 +126,8 @@ export default async function ProductDetails({
                     price: round2(product.price),
                     quantity: 1,
                     image: product.images[0],
-                    size: size || product.sizes[0],
-                    color: color || product.colors[0],
+                    size: Array.isArray(size) ? size[0] : size || product.sizes[0],
+                    color: Array.isArray(color) ? color[0] : color || product.colors[0],
                   }}
                 />
               </div>
