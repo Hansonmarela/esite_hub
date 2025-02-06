@@ -58,7 +58,8 @@ const useCartStore = create(
             ...get().cart,
             items: updatedCartItems,
             ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
+              deliveryDateIndex: get().cart.deliveryDateIndex!,
+              item: updatedCartItems,
             })),
           },
         })
