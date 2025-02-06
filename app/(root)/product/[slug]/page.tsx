@@ -15,11 +15,8 @@ import AddToBrowsingHistory from '@/components/shared/product/add-to-browsing-hi
 import AddToCart from '@/components/shared/product/add-to-cart'
 import { generateId, round2 } from '@/lib/utils'
 
-export async function generateMetadata(props: { 
-  params: Promise<{ slug: string }> 
-}) {
-  const params = await props.params;
-  const product = await getProductBySlug(params.slug)
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const product = await getProductBySlug(params.slug);
 
   if (!product) {
     return { title: 'Product not found' };
