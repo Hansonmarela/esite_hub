@@ -15,9 +15,9 @@ import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import ProductSlider from '@/components/shared/product/product-slider'
 
 export async function generateMetadata(props: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
-  const { slug } = props.params
+  const { slug } = await props.params  // Resolve the params promise
   const product = await getProductBySlug(slug)
   if (!product) {
     return { title: 'Product not found' }
@@ -29,12 +29,12 @@ export async function generateMetadata(props: {
 }
 
 export default async function ProductDetails(props: {
-  params: { slug: string }
-  searchParams: { page: string; color: string; size: string }
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ page: string; color: string; size: string }>
 }) {
-  const searchParams = props.searchParams
+  const searchParams = await props.searchParams  // Resolve the searchParams promise
   const { page, color, size } = searchParams
-  const { slug } = props.params
+  const { slug } = await props.params  // Resolve the params promise
 
   const product = await getProductBySlug(slug)
 
