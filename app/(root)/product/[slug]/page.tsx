@@ -14,7 +14,6 @@ import BrowsingHistoryList from '@/components/shared/browsing-history-list'
 import AddToBrowsingHistory from '@/components/shared/product/add-to-browsing-history'
 import AddToCart from '@/components/shared/product/add-to-cart'
 import { generateId, round2 } from '@/lib/utils'
-import { GetServerSidePropsContext } from 'next';
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const product = await getProductBySlug(params.slug);
@@ -29,28 +28,24 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-
 export default async function ProductDetails({
   params,
-  query,
-}: GetServerSidePropsContext<{ slug: string }>) {
-  const { page, color, size } = query
-  const { slug } = params || {}
+  searchParams,
+}: { params: { slug: string }; searchParams: { [key: string]: string | string[] | undefined } }) {
+  const { page, color, size } = searchParams;
+  const { slug } = params;
 
-  if (!slug) {
-    return <div>Product not found</div>
-  }
-  const product = await getProductBySlug(slug)
+  const product = await getProductBySlug(slug);
 
   if (!product) {
-    return <div>Product not found</div>
+    return <div>Product not found</div>;
   }
 
   const relatedProducts = await getRelatedProductsByCategory({
     category: product.category,
     productId: product._id,
     page: Number(page || '1'),
-  })
+  });
 
   return (
     <div>
@@ -87,8 +82,8 @@ export default async function ProductDetails({
             <div>
               <SelectVariant
                 product={product}
-                size={Array.isArray(size) ? size[0] : size || product.sizes[0]}
-                color={Array.isArray(color) ? color[0] : color || product.colors[0]}
+                size={typeof size === 'string' ? size : product.sizes[0]}
+                color={typeof color === 'string' ? color : product.colors[0]}
               />
             </div>
             <Separator className='my-2' />
@@ -114,28 +109,26 @@ export default async function ProductDetails({
                   <div className='text-destructive text-xl'>Out of Stock</div>
                 )}
                 {product.countInStock !== 0 && (
-              <div className='flex justify-center items-center'>
-                <AddToCart
-                  item={{
-                    clientId: generateId(),
-                    product: product._id,
-                    countInStock: product.countInStock,
-                    name: product.name,
-                    slug: product.slug,
-                    category: product.category,
-                    price: round2(product.price),
-                    quantity: 1,
-                    image: product.images[0],
-                    size: Array.isArray(size) ? size[0] : size || product.sizes[0],
-                    color: Array.isArray(color) ? color[0] : color || product.colors[0],
-                  }}
-                />
-              </div>
-            )}
+                  <div className='flex justify-center items-center'>
+                    <AddToCart
+                      item={{
+                        clientId: generateId(),
+                        product: product._id,
+                        countInStock: product.countInStock,
+                        name: product.name,
+                        slug: product.slug,
+                        category: product.category,
+                        price: round2(product.price),
+                        quantity: 1,
+                        image: product.images[0],
+                        size: typeof size === 'string' ? size : product.sizes[0],
+                        color: typeof color === 'string' ? color : product.colors[0],
+                      }}
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
-
-            
           </div>
         </div>
       </section>
@@ -148,5 +141,5 @@ export default async function ProductDetails({
         <BrowsingHistoryList className='mt-10' />
       </section>
     </div>
-  )
+  );
 }
